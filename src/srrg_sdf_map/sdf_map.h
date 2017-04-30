@@ -49,7 +49,7 @@ public:
     Cell* _parent;
     int _closest;
     float _distance;
-    int _sign;
+    float _sign;
 };
 
 
@@ -101,6 +101,23 @@ public:
     inline const Eigen::Vector3f origin(){ return _origin;}
     inline int numCells(){ return _num_cells;}
 
+    void integrateScan(srrg_core::PinholeImageMessage* image_msg, float max_distance, float min_distance);
+
+    inline const bool hasCell(const Eigen::Vector3i& idx){
+        Vector3iCellPtrMap::iterator it = find(idx);
+        return (it != end()) ? true : false;
+    }
+
+protected:
+    float _resolution;
+    float _inverse_resolution;
+    Eigen::Vector3f _origin;
+    Eigen::Vector3i _dimensions;
+    int _num_cells;
+
+private:
+    int findNeighbors(Cell **neighbors, Cell *c);
+
     inline const Eigen::Vector3i toGrid(const Eigen::Vector3f& point) const {
         return ((point - _origin)*_inverse_resolution).cast<int>();
     }
@@ -112,25 +129,9 @@ public:
         return (pow(a.x()-b.x(),2)+pow(a.y()-b.y(),2)+pow(a.z()-b.z(),2));
     }
 
-    inline const int computeSign(const Eigen::Vector3f& a, const Eigen::Vector3f& b){
+    inline const float computeSign(const Eigen::Vector3f& a, const Eigen::Vector3f& b){
         return (a.norm()-b.norm() < 0) ? -1 : 1;
     }
-
-    void integrateScan(srrg_core::PinholeImageMessage* image_msg, float max_distance, float min_distance);
-
-protected:
-    float _resolution;
-    float _inverse_resolution;
-    Eigen::Vector3f _origin;
-    Eigen::Vector3i _dimensions;
-    int _num_cells;
-
-    inline const bool hasCell(const Eigen::Vector3i& idx){
-        Vector3iCellPtrMap::iterator it = find(idx);
-        return (it != end()) ? true : false;
-    }
-
-    int findNeighbors(Cell **neighbors, Cell *c);
 };
 
 }

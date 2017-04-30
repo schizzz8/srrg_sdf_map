@@ -5,4 +5,6 @@ target_link_libraries(srrg_sdf_map_example
   srrg_txt_io_library
   srrg_sdf_map_library
   ${catkin_LIBRARIES}
+  ${OPENGL_LIBRARIES}
+  ${GLUT_LIBRARY}
 )

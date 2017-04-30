@@ -95,7 +95,6 @@ void SdfMap::integrateScan(PinholeImageMessage *image_msg, float max_distance, f
         int k = findNeighbors(neighbors,current);
         for(int ii=0; ii<k; ii++) {
             Cell* child = neighbors[ii];
-            int sign = 0;
             Eigen::Vector3f world_point = parent->_points.at(parent->_closest);
             float dist = euclideanDistance(child->_center,world_point);
             if(dist<child->_distance) {

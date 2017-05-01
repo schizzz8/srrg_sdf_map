@@ -18,6 +18,7 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     Cell(const Eigen::Vector3i& idx=Eigen::Vector3i::Zero()):
         _idx(idx){
+        _parent = 0;
         _distance = std::numeric_limits<float>::max();
     }
 
@@ -96,12 +97,14 @@ public:
             Eigen::Vector3f origin_ = Eigen::Vector3f::Zero(),
             Eigen::Vector3i dimensions_ = Eigen::Vector3i::Zero());
 
-    inline float resolution() { return _resolution;}
+    inline float resolution() const { return _resolution;}
     inline const Eigen::Vector3i& dimensions() const { return _dimensions;}
     inline const Eigen::Vector3f& origin() const { return _origin;}
-    inline int numCells() { return _num_cells;}
+    inline int numCells() const { return _num_cells;}
 
-    void integrateScan(srrg_core::PinholeImageMessage* image_msg, float max_distance, float min_distance);
+    void integrateScan(srrg_core::PinholeImageMessage* image_msg,
+                       float max_distance = std::numeric_limits<float>::max(),
+                       float min_distance = std::numeric_limits<float>::min());
 
     inline bool hasCell(const Eigen::Vector3i& idx) const {
         Vector3iCellPtrMap::const_iterator it = find(idx);
@@ -114,6 +117,13 @@ public:
                 idx.z() < 0 || idx.z() > _dimensions.z()) ? true : false;
     }
 
+    inline const Eigen::Vector3i toGrid(const Eigen::Vector3f& point) const {
+        return ((point - _origin)*_inverse_resolution).cast<int>();
+    }
+    inline const Eigen::Vector3f toWorld(const Eigen::Vector3i& cell) const{
+        return (_origin + cell.cast<float>() *_resolution);
+    }
+
 protected:
     float _resolution;
     float _inverse_resolution;
@@ -124,15 +134,8 @@ protected:
 private:
     int findNeighbors(Cell **neighbors, Cell *c);
 
-    inline const Eigen::Vector3i toGrid(const Eigen::Vector3f& point) const {
-        return ((point - _origin)*_inverse_resolution).cast<int>();
-    }
-    inline const Eigen::Vector3f toWorld(const Eigen::Vector3i& cell) const{
-        return (_origin + cell.cast<float>() *_resolution);
-    }
-
     inline const float euclideanDistance(const Eigen::Vector3f& a, const Eigen::Vector3f& b){
-        return (pow(a.x()-b.x(),2)+pow(a.y()-b.y(),2)+pow(a.z()-b.z(),2));
+        return (sqrt(pow(a.x()-b.x(),2)+pow(a.y()-b.y(),2)+pow(a.z()-b.z(),2)));
     }
 
     inline const float computeSign(const Eigen::Vector3f& a, const Eigen::Vector3f& b){

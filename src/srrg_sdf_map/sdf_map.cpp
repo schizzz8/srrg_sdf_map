@@ -45,22 +45,18 @@ void SdfMap::integrateScan(PinholeImageMessage *image_msg, float max_distance, f
 
                 if(hasCell(idx)){
                     float dist = euclideanDistance(at(idx)->_center,world_point);
-
                     if(dist < at(idx)->_distance){
                         at(idx)->_closest_point = world_point;
                         at(idx)->_distance = dist;
-                        at(idx)->_sign = computeSign(inverse_transform*at(idx)->_center,world_point);
+                        at(idx)->_sign = computeSign(inverse_transform*at(idx)->_center,camera_point);
                     }
                 } else {
                     Cell* cell = new Cell(idx);
                     cell->setCenter(_origin,_resolution);
                     cell->_closest_point = world_point;
-                    float dist = euclideanDistance(cell->_center,world_point);
-
-                    if(dist < cell->_distance) {
-                        cell->_distance = dist;
-                        cell->_sign = computeSign(inverse_transform*cell->_center,camera_point);
-                    }
+                    cell->_distance = euclideanDistance(cell->_center,world_point);
+                    cell->_sign = computeSign(inverse_transform*cell->_center,camera_point);
+                    cell->_parent = cell;
                     Vector3iCellPtrMap::iterator it = begin();
                     insert(it,std::pair<Eigen::Vector3i,Cell*>(idx,cell));
                 }
@@ -70,11 +66,8 @@ void SdfMap::integrateScan(PinholeImageMessage *image_msg, float max_distance, f
     }
 
     CellQueue q;
-    for(Vector3iCellPtrMap::iterator it = begin(); it != end(); ++it) {
-        Cell* cell = it->second;
-        cell->_parent = cell;
-        q.push(cell);
-    }
+    for(Vector3iCellPtrMap::iterator it = begin(); it != end(); ++it)
+        q.push(it->second);
 
     bool stop = false;
     int loop = 1;
@@ -94,12 +87,12 @@ void SdfMap::integrateScan(PinholeImageMessage *image_msg, float max_distance, f
         int k = findNeighbors(neighbors,current);
         for(int ii=0; ii<k; ii++) {
             Cell* child = neighbors[ii];
-            Eigen::Vector3f world_point = parent->_closest_point;
-            float dist = euclideanDistance(child->_center,world_point);
+            Eigen::Vector3f closest_point = parent->_closest_point;
+            float dist = euclideanDistance(child->_center,closest_point);
             if(dist<child->_distance) {
                 child->_parent = parent;
                 child->_distance = dist;
-                child->_sign = computeSign(inverse_transform*parent->_center,inverse_transform*world_point);
+                child->_sign = computeSign(inverse_transform*parent->_center,inverse_transform*closest_point);
                 q.push(child);
             }
         }
@@ -112,8 +105,9 @@ void SdfMap::integrateScan(PinholeImageMessage *image_msg, float max_distance, f
             loop--;
         }
     }
-
 }
+
+
 
 int SdfMap::findNeighbors(Cell **neighbors, Cell *c) {
     int x = c->_idx.x();

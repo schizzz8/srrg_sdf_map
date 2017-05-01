@@ -120,19 +120,20 @@ int main(int argc, char ** argv) {
     cerr << "\t>>Lower: " << lower.transpose() << endl;
     cerr << "\t>>Higher: " << higher.transpose() << endl;
 
-    cerr << " SdfMap size: " << dimensions.x() << "x" << dimensions.y() << "x" << dimensions.z() << endl;
+    cerr << "SdfMap size: " << dimensions.x() << "x" << dimensions.y() << "x" << dimensions.z() << endl;
     if(dimensions.x() == 0 || dimensions.y() == 0 || dimensions.z() == 0) {
         cerr << "Zero map size ... quitting!" << endl;
         return 0;
     }
 
-    cerr << "Building the SdfMap..." << endl;
+    cerr << "Building the SdfMap" << endl;
     SdfMap sdf_map (resolution,origin,dimensions);
     for(size_t i = 0; i < image_msgs.size(); ++i) {
         PinholeImageMessage* msg = image_msgs[i];
         sdf_map.integrateScan(msg,max_distance,min_distance);
+        cerr << ".";
     }
-    cerr << "done" << endl;
+    cerr << endl << "done" << endl;
 
     cerr << "Finding cubes for isosurface extraction..." << endl;
     CubeVector cube_vector;

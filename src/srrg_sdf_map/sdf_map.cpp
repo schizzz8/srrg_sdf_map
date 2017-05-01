@@ -44,28 +44,25 @@ void SdfMap::integrateScan(PinholeImageMessage *image_msg, float max_distance, f
                 Eigen::Vector3i idx = toGrid(world_point);
 
                 if(hasCell(idx)){
-                    at(idx)->_points.push_back(world_point);
+                    at(idx)->_closest_point = world_point;
                     float dist = euclideanDistance(at(idx)->_center,world_point);
                     if(dist < at(idx)->_distance){
                         at(idx)->_distance = dist;
                         at(idx)->_sign = computeSign(inverse_transform*at(idx)->_center,world_point);
-                        at(idx)->_closest = at(idx)->_points.size()-1;
                     }
                 } else {
                     Cell* cell = new Cell(idx);
                     cell->setCenter(_origin,_resolution);
-                    cell->_points.push_back(world_point);
+                    cell->_closest_point = world_point;
                     float dist = euclideanDistance(cell->_center,world_point);
                     if(dist < cell->_distance) {
                         cell->_distance = dist;
-                        cell->_sign = computeSign(inverse_transform*at(idx)->_center,camera_point);
-                        cell->_closest = 0;
+                        cell->_sign = computeSign(inverse_transform*cell->_center,camera_point);
                     }
                     Vector3iCellPtrMap::iterator it = begin();
                     insert(it,std::pair<Eigen::Vector3i,Cell*>(idx,cell));
                 }
             }
-
             id_ptr++;
         }
     }
@@ -95,12 +92,11 @@ void SdfMap::integrateScan(PinholeImageMessage *image_msg, float max_distance, f
         int k = findNeighbors(neighbors,current);
         for(int ii=0; ii<k; ii++) {
             Cell* child = neighbors[ii];
-            Eigen::Vector3f world_point = parent->_points.at(parent->_closest);
+            Eigen::Vector3f world_point = parent->_closest_point;
             float dist = euclideanDistance(child->_center,world_point);
             if(dist<child->_distance) {
                 child->_parent = parent;
                 child->_distance = dist;
-                child->_closest = parent->_closest;
                 child->_sign = computeSign(inverse_transform*parent->_center,inverse_transform*world_point);
                 q.push(child);
             }

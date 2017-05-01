@@ -45,9 +45,8 @@ public:
 
     Eigen::Vector3i _idx;
     Eigen::Vector3f _center;
-    srrg_core::Vector3fVector _points;
+    Eigen::Vector3f _closest_point;
     Cell* _parent;
-    int _closest;
     float _distance;
     float _sign;
 };
@@ -91,6 +90,7 @@ struct matrix_hash : std::unary_function<T, size_t> {
 typedef std::unordered_map<Eigen::Vector3i,Cell*,matrix_hash<Eigen::Vector3i> > Vector3iCellPtrMap;
 
 class SdfMap : public Vector3iCellPtrMap {
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 public:
     SdfMap (float resolution_ = 0.05,
             Eigen::Vector3f origin_ = Eigen::Vector3f::Zero(),
@@ -106,6 +106,12 @@ public:
     inline const bool hasCell(const Eigen::Vector3i& idx){
         Vector3iCellPtrMap::iterator it = find(idx);
         return (it != end()) ? true : false;
+    }
+
+    inline const bool outOfRange(const Eigen::Vector3i& idx){
+        return (idx.x() < 0 || idx.x() > _dimensions.x() ||
+                idx.y() < 0 || idx.y() > _dimensions.y() ||
+                idx.z() < 0 || idx.z() > _dimensions.z()) ? true : false;
     }
 
 protected:

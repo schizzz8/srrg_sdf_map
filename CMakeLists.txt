@@ -183,7 +183,7 @@ include_directories(
 #   ${catkin_LIBRARIES}
 # )
 
-add_subdirectory(src)
+add_subdirectory(${PROJECT_SOURCE_DIR}/src)
 
 #############
 ## Install ##

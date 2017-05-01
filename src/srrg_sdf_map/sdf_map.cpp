@@ -44,9 +44,10 @@ void SdfMap::integrateScan(PinholeImageMessage *image_msg, float max_distance, f
                 Eigen::Vector3i idx = toGrid(world_point);
 
                 if(hasCell(idx)){
-                    at(idx)->_closest_point = world_point;
                     float dist = euclideanDistance(at(idx)->_center,world_point);
+
                     if(dist < at(idx)->_distance){
+                        at(idx)->_closest_point = world_point;
                         at(idx)->_distance = dist;
                         at(idx)->_sign = computeSign(inverse_transform*at(idx)->_center,world_point);
                     }
@@ -55,6 +56,7 @@ void SdfMap::integrateScan(PinholeImageMessage *image_msg, float max_distance, f
                     cell->setCenter(_origin,_resolution);
                     cell->_closest_point = world_point;
                     float dist = euclideanDistance(cell->_center,world_point);
+
                     if(dist < cell->_distance) {
                         cell->_distance = dist;
                         cell->_sign = computeSign(inverse_transform*cell->_center,camera_point);

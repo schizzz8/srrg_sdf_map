@@ -18,7 +18,7 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     Cell(const Eigen::Vector3i& idx=Eigen::Vector3i::Zero()):
         _idx(idx){
-
+        _distance = std::numeric_limits<float>::max();
     }
 
     inline bool operator < (const Cell& c) const {
@@ -96,19 +96,19 @@ public:
             Eigen::Vector3f origin_ = Eigen::Vector3f::Zero(),
             Eigen::Vector3i dimensions_ = Eigen::Vector3i::Zero());
 
-    inline float resolution(){ return _resolution;}
-    inline const Eigen::Vector3i dimensions(){ return _dimensions;}
-    inline const Eigen::Vector3f origin(){ return _origin;}
-    inline int numCells(){ return _num_cells;}
+    inline float resolution() { return _resolution;}
+    inline const Eigen::Vector3i& dimensions() const { return _dimensions;}
+    inline const Eigen::Vector3f& origin() const { return _origin;}
+    inline int numCells() { return _num_cells;}
 
     void integrateScan(srrg_core::PinholeImageMessage* image_msg, float max_distance, float min_distance);
 
-    inline const bool hasCell(const Eigen::Vector3i& idx){
-        Vector3iCellPtrMap::iterator it = find(idx);
+    inline bool hasCell(const Eigen::Vector3i& idx) const {
+        Vector3iCellPtrMap::const_iterator it = find(idx);
         return (it != end()) ? true : false;
     }
 
-    inline const bool outOfRange(const Eigen::Vector3i& idx){
+    inline bool outOfRange(const Eigen::Vector3i& idx) {
         return (idx.x() < 0 || idx.x() > _dimensions.x() ||
                 idx.y() < 0 || idx.y() > _dimensions.y() ||
                 idx.z() < 0 || idx.z() > _dimensions.z()) ? true : false;
